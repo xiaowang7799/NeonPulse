@@ -42,15 +42,4 @@
     }
 }
 
-// PSLinkListCell 的详情控制器会绕过 root 的 read/set 覆盖直接写 NSUserDefaults，
-// 与 Tweak 读文件不一致；这里用 get/set 把发光颜色显式路由到文件写入。
-- (id)axs_neonpulse_getGlowColor:(PSSpecifier *)specifier {
-    NSString *key = [specifier propertyForKey:@"key"] ?: @"glowColor";
-    return axs_neonpulse_readPreferences()[key] ?: [specifier propertyForKey:@"default"];
-}
-
-- (void)axs_neonpulse_setGlowColor:(id)value specifier:(PSSpecifier *)specifier {
-    [self setPreferenceValue:value specifier:specifier];
-}
-
 @end

@@ -29,42 +29,23 @@
             <key>default</key><true/>
         </dict>
         <dict>
-            <key>cell</key><string>PSLinkListCell</string>
-            <key>label</key><string>发光颜色</string>
+            <key>cell</key><string>PSEditTextCell</string>
+            <key>label</key><string>发光颜色(十六进制)</string>
             <key>key</key><string>glowColor</string>
             <key>defaults</key><string>com.axs.neonpulse</string>
             <key>default</key><string>#00E5FF</string>
-            <key>get</key><string>axs_neonpulse_getGlowColor:</string>
-            <key>set</key><string>axs_neonpulse_setGlowColor:specifier:</string>
-            <key>validTitles</key>
-            <array>
-                <string>霓虹青</string>
-                <string>霓虹粉</string>
-                <string>霓虹紫</string>
-                <string>霓虹蓝</string>
-                <string>霓虹绿</string>
-                <string>霓虹橙</string>
-                <string>玫红</string>
-                <string>纯白</string>
-            </array>
-            <key>validValues</key>
-            <array>
-                <string>#00E5FF</string>
-                <string>#FF2D95</string>
-                <string>#B44AFF</string>
-                <string>#4A6CF7</string>
-                <string>#39FF14</string>
-                <string>#FF9500</string>
-                <string>#FF3355</string>
-                <string>#FFFFFF</string>
-            </array>
+            <key>placeholder</key><string>#00E5FF</string>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSGroupCell</string>
+            <key>footerText</key><string>预设色码：#00E5FF 青 / #FF2D95 粉 / #B44AFF 紫 / #4A6CF7 蓝 / #39FF14 绿 / #FF9500 橙 / #FF3355 红 / #FFFFFF 白</string>
         </dict>
         <dict>
             <key>cell</key><string>PSSliderCell</string>
             <key>label</key><string>发光强度</string>
             <key>key</key><string>glowIntensity</string>
             <key>defaults</key><string>com.axs.neonpulse</string>
-            <key>default</key><real>1.0</real>
+            <key>default</key><real>2.0</real>
             <key>min</key><real>0.0</real>
             <key>max</key><real>3.0</real>
             <key>showValue</key><true/>
@@ -74,7 +55,7 @@
             <key>label</key><string>描边宽度</string>
             <key>key</key><string>glowWidth</string>
             <key>defaults</key><string>com.axs.neonpulse</string>
-            <key>default</key><real>1.5</real>
+            <key>default</key><real>2.5</real>
             <key>min</key><real>0.5</real>
             <key>max</key><real>4.0</real>
             <key>showValue</key><true/>
@@ -106,7 +87,7 @@
             <key>label</key><string>呼吸幅度 (%)</string>
             <key>key</key><string>breathingAmplitude</string>
             <key>defaults</key><string>com.axs.neonpulse</string>
-            <key>default</key><real>4.0</real>
+            <key>default</key><real>8.0</real>
             <key>min</key><real>0.0</real>
             <key>max</key><real>15.0</real>
             <key>showValue</key><true/>
@@ -128,7 +109,7 @@
             <key>label</key><string>视差强度</string>
             <key>key</key><string>parallaxIntensity</string>
             <key>defaults</key><string>com.axs.neonpulse</string>
-            <key>default</key><real>24.0</real>
+            <key>default</key><real>40.0</real>
             <key>min</key><real>0.0</real>
             <key>max</key><real>60.0</real>
             <key>showValue</key><true/>
