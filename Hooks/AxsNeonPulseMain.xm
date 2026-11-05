@@ -249,7 +249,15 @@ static void axs_neonpulse_refreshIcon(SBIconImageView *imageView) {
 
 - (void)layoutSubviews {
     %orig;
-    // 布局只刷新静态发光描边（带缓存），不触碰持续动画。
+    // 只在 frame 实际变化时刷新发光描边，避免滚动时高频重复计算。
+    // 缓存签名已覆盖 frame，这里额外加一个快速路径：bounds 未变直接返回。
+    static char axs_neonpulse_boundsKey;
+    CGRect current = self.bounds;
+    NSValue *cached = objc_getAssociatedObject(self, &axs_neonpulse_boundsKey);
+    if (cached && CGRectEqualToRect([cached CGRectValue], current)) {
+        return;
+    }
+    objc_setAssociatedObject(self, &axs_neonpulse_boundsKey, [NSValue valueWithCGRect:current], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if ([[AxsNeonPulseConfig axs_neonpulse_shared] axs_neonpulse_isEnabled]) {
         axs_neonpulse_refreshGlow(self);
     }
