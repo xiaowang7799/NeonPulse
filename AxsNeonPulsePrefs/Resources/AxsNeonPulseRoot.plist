@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>title</key><string>霓虹脉冲</string>
+    <key>items</key>
+    <array>
+        <dict>
+            <key>cell</key><string>PSGroupCell</string>
+            <key>label</key><string>基本</string>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>label</key><string>启用插件</string>
+            <key>key</key><string>enabled</string>
+            <key>defaults</key><string>com.axs.neonpulse</string>
+            <key>default</key><false/>
+        </dict>
+
+        <dict>
+            <key>cell</key><string>PSGroupCell</string>
+            <key>label</key><string>霓虹发光边框</string>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>label</key><string>启用发光边框</string>
+            <key>key</key><string>glowEnabled</string>
+            <key>defaults</key><string>com.axs.neonpulse</string>
+            <key>default</key><true/>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSLinkListCell</string>
+            <key>label</key><string>发光颜色</string>
+            <key>key</key><string>glowColor</string>
+            <key>defaults</key><string>com.axs.neonpulse</string>
+            <key>default</key><string>#00E5FF</string>
+            <key>validTitles</key>
+            <array>
+                <string>霓虹青</string>
+                <string>霓虹粉</string>
+                <string>霓虹紫</string>
+                <string>霓虹蓝</string>
+                <string>霓虹绿</string>
+                <string>霓虹橙</string>
+                <string>玫红</string>
+                <string>纯白</string>
+            </array>
+            <key>validValues</key>
+            <array>
+                <string>#00E5FF</string>
+                <string>#FF2D95</string>
+                <string>#B44AFF</string>
+                <string>#4A6CF7</string>
+                <string>#39FF14</string>
+                <string>#FF9500</string>
+                <string>#FF3355</string>
+                <string>#FFFFFF</string>
+            </array>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSliderCell</string>
+            <key>label</key><string>发光强度</string>
+            <key>key</key><string>glowIntensity</string>
+            <key>defaults</key><string>com.axs.neonpulse</string>
+            <key>default</key><real>1.0</real>
+            <key>min</key><real>0.0</real>
+            <key>max</key><real>3.0</real>
+            <key>showValue</key><true/>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSliderCell</string>
+            <key>label</key><string>描边宽度</string>
+            <key>key</key><string>glowWidth</string>
+            <key>defaults</key><string>com.axs.neonpulse</string>
+            <key>default</key><real>1.5</real>
+            <key>min</key><real>0.5</real>
+            <key>max</key><real>4.0</real>
+            <key>showValue</key><true/>
+        </dict>
+
+        <dict>
+            <key>cell</key><string>PSGroupCell</string>
+            <key>label</key><string>呼吸动画</string>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>label</key><string>启用呼吸动画</string>
+            <key>key</key><string>breathingEnabled</string>
+            <key>defaults</key><string>com.axs.neonpulse</string>
+            <key>default</key><true/>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSliderCell</string>
+            <key>label</key><string>呼吸速度</string>
+            <key>key</key><string>breathingSpeed</string>
+            <key>defaults</key><string>com.axs.neonpulse</string>
+            <key>default</key><real>1.0</real>
+            <key>min</key><real>0.3</real>
+            <key>max</key><real>3.0</real>
+            <key>showValue</key><true/>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSliderCell</string>
+            <key>label</key><string>呼吸幅度 (%)</string>
+            <key>key</key><string>breathingAmplitude</string>
+            <key>defaults</key><string>com.axs.neonpulse</string>
+            <key>default</key><real>4.0</real>
+            <key>min</key><real>0.0</real>
+            <key>max</key><real>15.0</real>
+            <key>showValue</key><true/>
+        </dict>
+
+        <dict>
+            <key>cell</key><string>PSGroupCell</string>
+            <key>label</key><string>3D 视差</string>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSwitchCell</string>
+            <key>label</key><string>启用 3D 视差</string>
+            <key>key</key><string>parallaxEnabled</string>
+            <key>defaults</key><string>com.axs.neonpulse</string>
+            <key>default</key><true/>
+        </dict>
+        <dict>
+            <key>cell</key><string>PSSliderCell</string>
+            <key>label</key><string>视差强度</string>
+            <key>key</key><string>parallaxIntensity</string>
+            <key>defaults</key><string>com.axs.neonpulse</string>
+            <key>default</key><real>24.0</real>
+            <key>min</key><real>0.0</real>
+            <key>max</key><real>60.0</real>
+            <key>showValue</key><true/>
+        </dict>
+
+    </array>
+</dict>
+</plist>
