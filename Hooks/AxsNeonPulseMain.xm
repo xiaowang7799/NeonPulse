@@ -50,6 +50,7 @@ static NSHashTable *axs_neonpulse_iconViews(void) {
 }
 
 static char axs_neonpulse_glowKey;
+static char axs_neonpulse_glowCacheKey;
 static char axs_neonpulse_motionKey;
 static char axs_neonpulse_breathCacheKey;
 static char axs_neonpulse_parallaxCacheKey;
@@ -65,7 +66,8 @@ static CGFloat axs_neonpulse_iconCornerRadius(SBIconImageView *imageView) {
 }
 
 // ---------------------------------------------------------------------------
-// 霓虹发光边框：在图标图片视图的父视图（SBIconView）上插入描边 + 辉光 CAShapeLayer。
+// 霓虹发光边框：静态效果。带路径缓存，布局未变化时不重设 path/shadow，
+// 避免每次 layout 都重渲染阴影（阴影是静态的，渲染一次即被缓存）。
 // ---------------------------------------------------------------------------
 static void axs_neonpulse_refreshGlow(SBIconImageView *imageView) {
     AxsNeonPulseConfig *config = [AxsNeonPulseConfig axs_neonpulse_shared];
@@ -78,17 +80,26 @@ static void axs_neonpulse_refreshGlow(SBIconImageView *imageView) {
             [layer removeFromSuperlayer];
             objc_setAssociatedObject(imageView, &axs_neonpulse_glowKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
+        objc_setAssociatedObject(imageView, &axs_neonpulse_glowCacheKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         return;
     }
-    UIColor *color = axs_neonpulse_colorFromHex([config axs_neonpulse_valueForKey:@"glowColor" defaultValue:@"#00E5FF"]);
+    NSString *hex = [config axs_neonpulse_valueForKey:@"glowColor" defaultValue:@"#00E5FF"];
+    UIColor *color = axs_neonpulse_colorFromHex(hex);
     if (!color) color = [UIColor cyanColor];
     CGFloat intensity = axs_neonpulse_doubleValue(config, @"glowIntensity", 2.0);
     CGFloat width = axs_neonpulse_doubleValue(config, @"glowWidth", 2.5);
-    // self.frame 就是相对父视图的坐标，直接作为父图层上的路径。
     CGRect frame = imageView.frame;
     CGFloat radius = axs_neonpulse_iconCornerRadius(imageView);
-    UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:frame cornerRadius:radius];
 
+    NSString *signature = [NSString stringWithFormat:@"%.1f,%.1f,%.1f,%.1f|%.1f|%.2f|%.2f|%@",
+                           frame.origin.x, frame.origin.y, frame.size.width, frame.size.height,
+                           radius, width, intensity, hex];
+    NSString *cached = objc_getAssociatedObject(imageView, &axs_neonpulse_glowCacheKey);
+    if (layer && cached && [cached isEqualToString:signature]) {
+        return; // 无变化，跳过重渲染
+    }
+
+    UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:frame cornerRadius:radius];
     if (layer && layer.superlayer != container.layer) {
         // 父视图变化时搬到新的父图层。
         [layer removeFromSuperlayer];
@@ -109,15 +120,17 @@ static void axs_neonpulse_refreshGlow(SBIconImageView *imageView) {
     layer.shadowOpacity = 1.0;
     layer.shadowOffset = CGSizeZero;
     layer.shadowPath = path.CGPath;
+    objc_setAssociatedObject(imageView, &axs_neonpulse_glowCacheKey, signature, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 // ---------------------------------------------------------------------------
-// 呼吸动画：图标缩放的柔和脉冲。带参数缓存，布局刷新时不打断动画相位。
+// 呼吸动画：持续动画，仅在图标可见（有 window）时运行，离屏即移除。
 // ---------------------------------------------------------------------------
 static void axs_neonpulse_refreshBreathing(SBIconImageView *imageView) {
     AxsNeonPulseConfig *config = [AxsNeonPulseConfig axs_neonpulse_shared];
     BOOL enabled = [config axs_neonpulse_isEnabled]
-        && axs_neonpulse_boolValue(config, @"breathingEnabled", YES);
+        && axs_neonpulse_boolValue(config, @"breathingEnabled", YES)
+        && imageView.window != nil;
     if (!enabled) {
         [imageView.layer removeAnimationForKey:AxsNeonPulseBreathingKey];
         objc_setAssociatedObject(imageView, &axs_neonpulse_breathCacheKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -148,12 +161,13 @@ static void axs_neonpulse_refreshBreathing(SBIconImageView *imageView) {
 }
 
 // ---------------------------------------------------------------------------
-// 3D 视差：UIKit 原生倾斜视差，图标随设备角度平移，形成浮起效果。
+// 3D 视差：仅在图标可见时挂载运动效果。
 // ---------------------------------------------------------------------------
 static void axs_neonpulse_refreshParallax(SBIconImageView *imageView) {
     AxsNeonPulseConfig *config = [AxsNeonPulseConfig axs_neonpulse_shared];
     BOOL enabled = [config axs_neonpulse_isEnabled]
-        && axs_neonpulse_boolValue(config, @"parallaxEnabled", YES);
+        && axs_neonpulse_boolValue(config, @"parallaxEnabled", YES)
+        && imageView.window != nil;
     UIMotionEffectGroup *existing = objc_getAssociatedObject(imageView, &axs_neonpulse_motionKey);
     if (!enabled) {
         if (existing) {
@@ -194,6 +208,7 @@ static void axs_neonpulse_removeAllEffects(SBIconImageView *imageView) {
         [layer removeFromSuperlayer];
         objc_setAssociatedObject(imageView, &axs_neonpulse_glowKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
+    objc_setAssociatedObject(imageView, &axs_neonpulse_glowCacheKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     [imageView.layer removeAnimationForKey:AxsNeonPulseBreathingKey];
     objc_setAssociatedObject(imageView, &axs_neonpulse_breathCacheKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     UIMotionEffectGroup *group = objc_getAssociatedObject(imageView, &axs_neonpulse_motionKey);
@@ -217,6 +232,7 @@ static void axs_neonpulse_refreshIcon(SBIconImageView *imageView) {
 
 // ---------------------------------------------------------------------------
 // Logos hook：直接 hook 图标图片视图，覆盖主屏、Dock 与文件夹图标。
+// 离屏（window 为 nil）时停掉呼吸/视差这类持续动画，节省电量、降低发热。
 // ---------------------------------------------------------------------------
 %hook SBIconImageView
 
@@ -224,16 +240,19 @@ static void axs_neonpulse_refreshIcon(SBIconImageView *imageView) {
     %orig;
     if (self.window) {
         [axs_neonpulse_iconViews() addObject:self];
+        axs_neonpulse_refreshIcon(self);
     } else {
         [axs_neonpulse_iconViews() removeObject:self];
+        axs_neonpulse_removeAllEffects(self);
     }
-    axs_neonpulse_refreshIcon(self);
 }
 
 - (void)layoutSubviews {
     %orig;
-    // 全量协调；呼吸/视差带参数缓存，重复布局不会打断动画。
-    axs_neonpulse_refreshIcon(self);
+    // 布局只刷新静态发光描边（带缓存），不触碰持续动画。
+    if ([[AxsNeonPulseConfig axs_neonpulse_shared] axs_neonpulse_isEnabled]) {
+        axs_neonpulse_refreshGlow(self);
+    }
 }
 
 - (void)dealloc {
@@ -250,7 +269,7 @@ static id axs_neonpulse_observerToken;
     @autoreleasepool {
         // 读取一次快照，触发配置层初始化；不写默认值。
         [AxsNeonPulseConfig axs_neonpulse_shared];
-        // 面板写配置后经 Darwin 通知到达本进程，主线程刷新所有图标视图。
+        // 面板写配置后经 Darwin 通知到达本进程，主线程刷新所有可见图标视图。
         axs_neonpulse_observerToken = [[NSNotificationCenter defaultCenter]
             addObserverForName:AxsNeonPulsePreferencesChanged object:nil
             queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *notification) {
