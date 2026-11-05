@@ -52,8 +52,8 @@ static void axs_neonpulse_preferencesDidChange(CFNotificationCenterRef center, v
 }
 
 - (BOOL)axs_neonpulse_isEnabled {
-    id value = [self axs_neonpulse_valueForKey:@"enabled" defaultValue:@(NO)];
-    return [value isKindOfClass:[NSNumber class]] ? [value boolValue] : NO;
+    id value = [self axs_neonpulse_valueForKey:@"enabled" defaultValue:@(YES)];
+    return [value isKindOfClass:[NSNumber class]] ? [value boolValue] : YES;
 }
 
 - (void)dealloc {

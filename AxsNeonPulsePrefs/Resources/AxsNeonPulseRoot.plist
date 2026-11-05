@@ -14,7 +14,7 @@
             <key>label</key><string>启用插件</string>
             <key>key</key><string>enabled</string>
             <key>defaults</key><string>com.axs.neonpulse</string>
-            <key>default</key><false/>
+            <key>default</key><true/>
         </dict>
 
         <dict>
@@ -34,6 +34,8 @@
             <key>key</key><string>glowColor</string>
             <key>defaults</key><string>com.axs.neonpulse</string>
             <key>default</key><string>#00E5FF</string>
+            <key>get</key><string>axs_neonpulse_getGlowColor:</string>
+            <key>set</key><string>axs_neonpulse_setGlowColor:specifier:</string>
             <key>validTitles</key>
             <array>
                 <string>霓虹青</string>

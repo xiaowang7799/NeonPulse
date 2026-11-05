@@ -44,6 +44,8 @@ static NSHashTable *axs_neonpulse_iconViews(void) {
 
 static char axs_neonpulse_glowKey;
 static char axs_neonpulse_motionKey;
+static char axs_neonpulse_breathCacheKey;
+static char axs_neonpulse_parallaxCacheKey;
 static NSString *const AxsNeonPulseBreathingKey = @"axs_neonpulse_breathing";
 
 static SBIconImageView *axs_neonpulse_imageViewOf(SBIconView *view) {
@@ -84,7 +86,8 @@ static void axs_neonpulse_refreshGlow(SBIconView *view) {
     if (!color) color = [UIColor cyanColor];
     CGFloat intensity = axs_neonpulse_doubleValue(config, @"glowIntensity", 1.0);
     CGFloat width = axs_neonpulse_doubleValue(config, @"glowWidth", 1.5);
-    CGRect frame = imageView.frame;
+    // 无论图标视图嵌套多深，都换算到 SBIconView 坐标系，保证描边路径对齐。
+    CGRect frame = [view convertRect:imageView.bounds fromView:imageView];
     CGFloat radius = axs_neonpulse_iconCornerRadius(imageView);
     UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:frame cornerRadius:radius];
     if (!layer) {
@@ -104,7 +107,7 @@ static void axs_neonpulse_refreshGlow(SBIconView *view) {
 }
 
 // ---------------------------------------------------------------------------
-// 呼吸动画：图标缩放的柔和脉冲。
+// 呼吸动画：图标缩放的柔和脉冲。带参数缓存，布局刷新时不打断动画相位。
 // ---------------------------------------------------------------------------
 static void axs_neonpulse_refreshBreathing(SBIconView *view) {
     AxsNeonPulseConfig *config = [AxsNeonPulseConfig axs_neonpulse_shared];
@@ -114,6 +117,7 @@ static void axs_neonpulse_refreshBreathing(SBIconView *view) {
     if (!imageView) return;
     if (!enabled) {
         [imageView.layer removeAnimationForKey:AxsNeonPulseBreathingKey];
+        objc_setAssociatedObject(imageView, &axs_neonpulse_breathCacheKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         return;
     }
     double speed = axs_neonpulse_doubleValue(config, @"breathingSpeed", 1.0);
@@ -121,6 +125,14 @@ static void axs_neonpulse_refreshBreathing(SBIconView *view) {
     // 面板用百分比（0–15），默认 4%，换算为缩放振幅。
     double amplitude = axs_neonpulse_doubleValue(config, @"breathingAmplitude", 4.0) / 100.0;
     if (amplitude < 0.0) amplitude = 0.0;
+
+    NSString *signature = [NSString stringWithFormat:@"%.4f|%.4f", speed, amplitude];
+    NSString *cached = objc_getAssociatedObject(imageView, &axs_neonpulse_breathCacheKey);
+    if ([imageView.layer animationForKey:AxsNeonPulseBreathingKey] && cached
+        && [cached isEqualToString:signature]) {
+        return;
+    }
+
     CAKeyframeAnimation *animation = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
     animation.values = @[@1.0, @(1.0 + amplitude), @1.0, @(1.0 - amplitude), @1.0];
     animation.keyTimes = @[@0.0, @0.25, @0.5, @0.75, @1.0];
@@ -130,6 +142,7 @@ static void axs_neonpulse_refreshBreathing(SBIconView *view) {
     animation.repeatCount = INFINITY;
     animation.removedOnCompletion = NO;
     [imageView.layer addAnimation:animation forKey:AxsNeonPulseBreathingKey];
+    objc_setAssociatedObject(imageView, &axs_neonpulse_breathCacheKey, signature, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 // ---------------------------------------------------------------------------
@@ -147,10 +160,15 @@ static void axs_neonpulse_refreshParallax(SBIconView *view) {
             [imageView removeMotionEffect:existing];
             objc_setAssociatedObject(imageView, &axs_neonpulse_motionKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
+        objc_setAssociatedObject(imageView, &axs_neonpulse_parallaxCacheKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         return;
     }
     double intensity = axs_neonpulse_doubleValue(config, @"parallaxIntensity", 24.0);
     if (intensity < 0.0) intensity = 0.0;
+    NSNumber *cachedIntensity = objc_getAssociatedObject(imageView, &axs_neonpulse_parallaxCacheKey);
+    if (existing && cachedIntensity && [cachedIntensity doubleValue] == intensity) {
+        return;
+    }
     if (existing) [imageView removeMotionEffect:existing];
     UIInterpolatingMotionEffect *horizontal = [[UIInterpolatingMotionEffect alloc]
         initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
@@ -164,6 +182,7 @@ static void axs_neonpulse_refreshParallax(SBIconView *view) {
     group.motionEffects = @[horizontal, vertical];
     [imageView addMotionEffect:group];
     objc_setAssociatedObject(imageView, &axs_neonpulse_motionKey, group, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(imageView, &axs_neonpulse_parallaxCacheKey, @(intensity), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 // ---------------------------------------------------------------------------
@@ -178,11 +197,13 @@ static void axs_neonpulse_removeAllEffects(SBIconView *view) {
     SBIconImageView *imageView = axs_neonpulse_imageViewOf(view);
     if (imageView) {
         [imageView.layer removeAnimationForKey:AxsNeonPulseBreathingKey];
+        objc_setAssociatedObject(imageView, &axs_neonpulse_breathCacheKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         UIMotionEffectGroup *group = objc_getAssociatedObject(imageView, &axs_neonpulse_motionKey);
         if (group) {
             [imageView removeMotionEffect:group];
             objc_setAssociatedObject(imageView, &axs_neonpulse_motionKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
+        objc_setAssociatedObject(imageView, &axs_neonpulse_parallaxCacheKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
 }
 
@@ -215,10 +236,8 @@ static void axs_neonpulse_refreshIcon(SBIconView *view) {
 
 - (void)layoutSubviews {
     %orig;
-    // 布局变化只刷新发光描边路径，避免反复重建打断呼吸动画相位。
-    if ([[AxsNeonPulseConfig axs_neonpulse_shared] axs_neonpulse_isEnabled]) {
-        axs_neonpulse_refreshGlow(self);
-    }
+    // 全量协调；呼吸/视差带参数缓存，重复布局不会打断动画。
+    axs_neonpulse_refreshIcon(self);
 }
 
 - (void)dealloc {

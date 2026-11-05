@@ -3,8 +3,8 @@ Name: 霓虹脉冲
 Version: 5.2.0
 Architecture: iphoneos-arm
 Description: 主屏图标霓虹发光、呼吸动画与 3D 视差美化
-Maintainer: 三叶草
-Author: 三叶草
+Maintainer: 搞机群友：三叶草
+Author: 搞机群友：三叶草
 Section: Axs-Tweaks
 Depends: mobilesubstrate, preferenceloader
 Icon: https://axs66.github.io/pro/icon/neonpulse.png
